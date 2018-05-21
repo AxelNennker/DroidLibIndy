@@ -1,4 +1,4 @@
-# Android Studio project to run the unit tests of libiny
+# Android Studio project to run the unit tests of libindy
 
 See [libindy](https://github.com/hyperledger/indy-sdk)
 
