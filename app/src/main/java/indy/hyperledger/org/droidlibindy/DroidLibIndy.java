@@ -9,11 +9,37 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.io.File;
+
 public class DroidLibIndy extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        File dataDir = getApplicationContext().getDataDir();
+        System.out.println("datadir=" + dataDir.getAbsolutePath());
+        File externalFilesDir = getExternalFilesDir(null);
+        System.out.println("externalFilesDir=" + externalFilesDir.getAbsolutePath());
+
+
+        File[] files = externalFilesDir.listFiles();
+        for (int i = 0; i < files.length; ++i) {
+            File file = files[i];
+            if (file.isDirectory()) {
+                System.out.println("axel directory:" + file.getName());
+                if (".indy_client".equals(file.getName())) {
+                    String[] children = file.list();
+                    for (int j = 0; j < children.length; j++)
+                    {
+                        System.out.println("axel deleting:" + children[j]);
+                        new File(file, children[j]).delete();
+                    }
+                }
+            } else {
+                System.out.println("axel file     :" + file.getName());
+            }
+        }
 
         System.loadLibrary( "indy");
 
