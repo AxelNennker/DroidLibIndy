@@ -1,4 +1,4 @@
-# Android Studio project to run the unit tests of libindy
+# Android Studio project loading libindy and creating a wallet
 
 See [libindy](https://github.com/hyperledger/indy-sdk)
 
