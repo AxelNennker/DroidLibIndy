@@ -5,7 +5,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.hyperledger.indy.sdk.ErrorCode;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 public class InMemWalletType extends WalletType {
@@ -33,15 +32,12 @@ public class InMemWalletType extends WalletType {
         int freshnessDuration = 1000;
         
         if(config != null){
-        	try {
-                JSONObject configObj = new JSONObject(config);
-
-                if (configObj != null && !configObj.isNull("freshness_time")) {
-                    freshnessDuration = configObj.getInt("freshness_time");
-                }
-            } catch (JSONException e) {
-        	    return ErrorCode.WalletAccessFailed;
-            }
+        	
+	        JSONObject configObj =  new JSONObject(config);
+	        
+	        if(configObj != null && !configObj.isNull("freshness_time")) {
+	            freshnessDuration = configObj.getInt("freshness_time");
+	        }
         }
 
         configuredWallets.put(name, new InMemWallet(freshnessDuration));

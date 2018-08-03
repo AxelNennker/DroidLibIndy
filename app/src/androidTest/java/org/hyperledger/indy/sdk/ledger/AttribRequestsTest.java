@@ -5,6 +5,7 @@ import org.hyperledger.indy.sdk.InvalidStructureException;
 import org.hyperledger.indy.sdk.did.Did;
 import org.hyperledger.indy.sdk.did.DidResults;
 import org.hyperledger.indy.sdk.utils.PoolUtils;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.*;
 
@@ -16,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 public class AttribRequestsTest extends IndyIntegrationTestWithPoolAndSingleWallet {
 
-	private String endpoint = "{\"endpoint\":{\"ha\":\"192.168.178.71:5555\"}}";
+	private String endpoint = "{\"endpoint\":{\"ha\":\"127.0.0.1:5555\"}}";
 	private String hash = "83d907821df1c87db829e96569a11f6fc2e7880acba5e43d07ab786959e13bd3";
 	private String enc = "aa3f41f619aa7e5e6b6d0de555e05331787f9bf9aa672b94b57ab65b9b66c3ea960b18a98e3834b1fc6cebf49f463b81fd6e3181";
 
@@ -142,8 +143,14 @@ public class AttribRequestsTest extends IndyIntegrationTestWithPoolAndSingleWall
 		String getAttribRequest = Ledger.buildGetAttribRequest(myDid, myDid, "endpoint", null, null).get();
 
 		String getAttribResponse = PoolUtils.ensurePreviousRequestApplied(pool, getAttribRequest, response -> {
-			JSONObject getAttribResponseObject = new JSONObject(response);
-			return endpoint.equals(getAttribResponseObject.getJSONObject("result").getString("data"));
+			JSONObject getAttribResponseObject = null;
+			try {
+				getAttribResponseObject = new JSONObject(response);
+				return endpoint.equals(getAttribResponseObject.getJSONObject("result").getString("data"));
+			} catch (JSONException e) {
+				e.printStackTrace();
+				return false;
+			}
 		});
 		assertNotNull(getAttribResponse);
 	}
@@ -166,8 +173,13 @@ public class AttribRequestsTest extends IndyIntegrationTestWithPoolAndSingleWall
 		String getAttribRequest = Ledger.buildGetAttribRequest(myDid, myDid, null, hash, null).get();
 
 		String getAttribResponse = PoolUtils.ensurePreviousRequestApplied(pool, getAttribRequest, response -> {
-			JSONObject getAttribResponseObject = new JSONObject(response);
-			return hash.equals(getAttribResponseObject.getJSONObject("result").getString("data"));
+			try {
+				JSONObject getAttribResponseObject = new JSONObject(response);
+				return hash.equals(getAttribResponseObject.getJSONObject("result").getString("data"));
+			} catch (JSONException e) {
+				e.printStackTrace();
+				return false;
+			}
 		});
 		assertNotNull(getAttribResponse);
 	}
@@ -190,8 +202,13 @@ public class AttribRequestsTest extends IndyIntegrationTestWithPoolAndSingleWall
 		String getAttribRequest = Ledger.buildGetAttribRequest(myDid, myDid, null, null, enc).get();
 
 		String getAttribResponse = PoolUtils.ensurePreviousRequestApplied(pool, getAttribRequest, response -> {
-			JSONObject getAttribResponseObject = new JSONObject(response);
-			return enc.equals(getAttribResponseObject.getJSONObject("result").getString("data"));
+			try {
+				JSONObject getAttribResponseObject = new JSONObject(response);
+				return enc.equals(getAttribResponseObject.getJSONObject("result").getString("data"));
+			} catch (JSONException e) {
+				e.printStackTrace();
+				return false;
+			}
 		});
 		assertNotNull(getAttribResponse);
 	}

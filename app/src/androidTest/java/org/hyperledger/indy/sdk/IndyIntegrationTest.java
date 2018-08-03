@@ -5,8 +5,6 @@ import org.hyperledger.indy.sdk.pool.Pool;
 import org.hyperledger.indy.sdk.did.DidJSONParameters;
 import org.hyperledger.indy.sdk.utils.InitHelper;
 import org.hyperledger.indy.sdk.utils.StorageUtils;
-import org.hyperledger.indy.sdk.wallet.InMemWalletType;
-import org.hyperledger.indy.sdk.wallet.Wallet;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
@@ -20,6 +18,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static org.hyperledger.indy.sdk.utils.EnvironmentUtils.getIndyHomePath;
+import static org.hyperledger.indy.sdk.utils.EnvironmentUtils.getTmpPath;
 
 public class IndyIntegrationTest {
 
@@ -43,7 +42,7 @@ public class IndyIntegrationTest {
 	protected static final String WALLET = "Wallet1";
 	protected static final String TYPE = "default";
 	protected static final String METADATA = "some metadata";
-	protected static final String ENDPOINT = "192.168.178.71:9700";
+	protected static final String ENDPOINT = "127.0.0.1:9700";
 	protected static final String CRYPTO_TYPE = "ed25519";
 	protected byte[] SIGNATURE = {20, - 65, 100, - 43, 101, 12, - 59, - 58, - 53, 49, 89, - 36, - 51, - 64, - 32, - 35, 97, 77, - 36, - 66, 90, 60, - 114, 23, 16, - 16, - 67, - 127, 45, - 108, - 11, 8, 102, 95, 95, - 7, 100, 89, 41, - 29, - 43, 25, 100, 1, - 24, - 68, - 11, - 21, - 70, 21, 52, - 80, - 20, 11, 99, 70, - 101, - 97, 89, - 41, - 59, - 17, - 118, 5};
 	protected byte[] ENCRYPTED_MESSAGE = {- 105, 30, 89, 75, 76, 28, - 59, - 45, 105, - 46, 20, 124, - 85, - 13, 109, 29, - 88, - 82, - 8, - 6, - 50, - 84, - 53, - 48, - 49, 56, 124, 114, 82, 126, 74, 99, - 72, - 78, - 117, 96, 60, 119, 50, - 40, 121, 21, 57, - 68, 89};
@@ -57,7 +56,8 @@ public class IndyIntegrationTest {
 	protected String XYZ_SCHEMA_ATTRIBUTES = "[\"status\", \"period\"]";
 	protected String REVOC_REG_TYPE = "CL_ACCUM";
 	protected String SIGNATURE_TYPE = "CL";
-	protected String TAILS_WRITER_CONFIG;
+	protected String TAILS_WRITER_CONFIG =
+			"{ \"base_dir\":" +  getIndyHomePath("tails").replace('\\', '/') + ", \"uri_pattern\":\"\"}";
 	protected String REV_CRED_DEF_CONFIG = "{\"support_revocation\":true}";
 	protected String GVT_CRED_VALUES = "{\n" +
 			"        \"sex\": {\"raw\": \"male\", \"encoded\": \"5944657099558967239210949258394887428692050081607692519917050\"},\n" +
@@ -65,6 +65,13 @@ public class IndyIntegrationTest {
 			"        \"height\": {\"raw\": \"175\", \"encoded\": \"175\"},\n" +
 			"        \"age\": {\"raw\": \"28\", \"encoded\": \"28\"}\n" +
 			"    }";
+	protected static final String WALLET_CONFIG = "{ \"id\":" + WALLET + ", \"storage_type\":" + TYPE + '}';
+
+	protected static final String WALLET_CREDENTIALS = "{ \"key\":\"key\"}";
+
+	protected static final String PLUGGED_WALLET_CONFIG = "{ \"id\":" + WALLET + ", \"storage_type\":\"unknown_type\"}";
+
+	protected int PROTOCOL_VERSION = 2;
 
 
 	protected static final String TRUSTEE_IDENTITY_JSON =
@@ -76,6 +83,9 @@ public class IndyIntegrationTest {
 	protected static final String MY1_IDENTITY_KEY_JSON =
 			new CryptoJSONParameters.CreateKeyJSONParameter(MY1_SEED, null).toJson();
 
+	protected static final String EXPORT_KEY = "export_key";
+	protected static final String EXPORT_PATH = getTmpPath("export_wallet");
+	protected static final String EXPORT_CONFIG_JSON = "{ \"key\":" + EXPORT_KEY + ", \"path\":" + EXPORT_PATH + '}';
 
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
@@ -86,15 +96,15 @@ public class IndyIntegrationTest {
 	private static Boolean isWalletRegistered = false;
 
 	@Before
-	public void setUp() throws IOException, InterruptedException, ExecutionException, IndyException, Exception {
+	public void setUp() throws Exception {
 		InitHelper.init();
 		StorageUtils.cleanupStorage();
-		if (! isWalletRegistered) {
-			Wallet.registerWalletType("inmem", new InMemWalletType()).get();
-		}
+		Pool.setProtocolVersion(PROTOCOL_VERSION).get();
+//		if (! isWalletRegistered) { TODO:FIXME
+//			Wallet.registerWalletType("inmem", new InMemWalletType()).get();
+//		}
 		isWalletRegistered = true;
-        TAILS_WRITER_CONFIG = new JSONObject(String.format("{\"base_dir\":\"%s\", \"uri_pattern\":\"\"}", getIndyHomePath("tails")).replace('\\', '/')).toString();
-    }
+	}
 
 	protected HashSet<Pool> openedPools = new HashSet<>();
 

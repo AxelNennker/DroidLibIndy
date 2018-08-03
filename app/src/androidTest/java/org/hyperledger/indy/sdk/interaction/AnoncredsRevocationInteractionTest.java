@@ -11,6 +11,7 @@ import org.hyperledger.indy.sdk.ledger.LedgerResults;
 import org.hyperledger.indy.sdk.ledger.LedgerResults.ParseResponseResult;
 import org.hyperledger.indy.sdk.utils.PoolUtils;
 import org.hyperledger.indy.sdk.wallet.Wallet;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.junit.*;
@@ -26,18 +27,18 @@ public class AnoncredsRevocationInteractionTest extends IndyIntegrationTestWithP
 	@Rule
 	public Timeout globalTimeout = new Timeout(3, TimeUnit.MINUTES);
 	private Wallet proverWallet;
-	private String proverWalletName = "proverWallet";
+	private String proverWalletConfig = "{\"id\":\"proverWallet\"}";
 
 	@Before
 	public void createProverWallet() throws Exception {
-		Wallet.createWallet(POOL, proverWalletName, TYPE, null, null).get();
-		proverWallet = Wallet.openWallet(proverWalletName, null, null).get();
+		Wallet.createWallet(proverWalletConfig, WALLET_CREDENTIALS).get();
+		proverWallet = Wallet.openWallet(proverWalletConfig, WALLET_CREDENTIALS).get();
 	}
 
 	@After
 	public void deleteWalletWallet() throws Exception {
 		proverWallet.closeWallet().get();
-		Wallet.deleteWallet(proverWalletName, null).get();
+		Wallet.deleteWallet(proverWalletConfig, WALLET_CREDENTIALS).get();
 	}
 
 	@Test
@@ -76,8 +77,13 @@ public class AnoncredsRevocationInteractionTest extends IndyIntegrationTestWithP
 		// Issuer get Schema from Ledger
 		String getSchemaRequest = Ledger.buildGetSchemaRequest(issuerDid, schemaInfo.getSchemaId()).get();
 		String getSchemaResponse = PoolUtils.ensurePreviousRequestApplied(pool, getSchemaRequest, response -> {
-			JSONObject getSchemaResponseObject = new JSONObject(response);
-			return ! getSchemaResponseObject.getJSONObject("result").isNull("seqNo");
+			try {
+				JSONObject getSchemaResponseObject = new JSONObject(response);
+				return ! getSchemaResponseObject.getJSONObject("result").isNull("seqNo");
+			} catch (JSONException e) {
+				e.printStackTrace();
+				return false;
+			}
 		});
 
 		// !!IMPORTANT!!
@@ -214,7 +220,7 @@ public class AnoncredsRevocationInteractionTest extends IndyIntegrationTestWithP
 
 		revRegId = revRegInfo2.getId();
 		revocRegDeltaJson = revRegInfo2.getObjectJson();
-		int timestamp = revRegInfo2.getTimestamp();
+		long timestamp = revRegInfo2.getTimestamp();
 
 		// Prover creates RevocationState
 		String revStateJson = Anoncreds.createRevocationState(blobStorageReaderHandle.getBlobStorageReaderHandle(),
@@ -419,8 +425,13 @@ public class AnoncredsRevocationInteractionTest extends IndyIntegrationTestWithP
 		// Issuer get Schema from Ledger
 		String getSchemaRequest = Ledger.buildGetSchemaRequest(issuerDid, schemaInfo.getSchemaId()).get();
 		String getSchemaResponse = PoolUtils.ensurePreviousRequestApplied(pool, getSchemaRequest, response -> {
-			JSONObject getSchemaResponseObject = new JSONObject(response);
-			return ! getSchemaResponseObject.getJSONObject("result").isNull("seqNo");
+			try {
+				JSONObject getSchemaResponseObject = new JSONObject(response);
+				return !getSchemaResponseObject.getJSONObject("result").isNull("seqNo");
+			} catch (JSONException e) {
+				e.printStackTrace();
+				return false;
+			}
 		});
 
 		// !!IMPORTANT!!

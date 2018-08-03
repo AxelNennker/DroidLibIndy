@@ -6,6 +6,7 @@ import org.hyperledger.indy.sdk.anoncreds.AnoncredsResults;
 import org.hyperledger.indy.sdk.blob_storage.BlobStorageWriter;
 import org.hyperledger.indy.sdk.utils.InitHelper;
 import org.hyperledger.indy.sdk.utils.PoolUtils;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Rule;
@@ -28,13 +29,7 @@ public class LedgerIntegrationTest extends IndyIntegrationTestWithPoolAndSingleW
 	static String credDefId;
 	static String revRegDefId;
 
-	@Before
-	public void setUp() throws Exception {
-		InitHelper.init();
-		postEntities();
-	}
-
-	private void postEntities() throws Exception {
+	void postEntities() throws Exception {
 
 		if (entitiesPosted) {
 			return;
@@ -52,8 +47,13 @@ public class LedgerIntegrationTest extends IndyIntegrationTestWithPoolAndSingleW
 
 		String getSchemaRequest = Ledger.buildGetSchemaRequest(myDid, schemaId).get();
 		String getSchemaResponse = PoolUtils.ensurePreviousRequestApplied(pool, getSchemaRequest, response -> {
-			JSONObject getSchemaResponseObject = new JSONObject(response);
-			return !getSchemaResponseObject.getJSONObject("result").isNull("seqNo");
+			try {
+				JSONObject getSchemaResponseObject = new JSONObject(response);
+				return !getSchemaResponseObject.getJSONObject("result").isNull("seqNo");
+			} catch (JSONException e) {
+				e.printStackTrace();
+				return false;
+			}
 		});
 
 		LedgerResults.ParseResponseResult parseSchemaResult = Ledger.parseGetSchemaResponse(getSchemaResponse).get();

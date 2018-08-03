@@ -8,10 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.hyperledger.indy.sdk.ErrorCode;
 import org.hyperledger.indy.sdk.wallet.WalletType.StringByReference;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
-
-import static org.hyperledger.indy.sdk.ErrorCode.WalletAccessFailed;
 
 public class InMemWallet implements CustomWallet {
 
@@ -88,25 +85,16 @@ public class InMemWallet implements CustomWallet {
 				continue;
 			
 			JSONObject valueObject = new JSONObject();
-			try {
-				valueObject.put("key", key);
-				valueObject.put("value", record.value);
-			} catch (JSONException e) {
-				return WalletAccessFailed;
-			}
-
+			valueObject.put("key", key);
+			valueObject.put("value", record.value);
 			
 			jsonValues.put(valueObject);
 		}
 		
 		JSONObject resultObject = new JSONObject();
-		try {
-			resultObject.put("values", jsonValues);
-		} catch (JSONException e) {
-			return WalletAccessFailed;
-		}
-
-		resultString.setValue(resultObject.toString());
+		resultObject.put("values", jsonValues);
+		
+        resultString.setValue(resultObject.toString());
 
         return ErrorCode.Success;
 	}

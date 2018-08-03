@@ -24,28 +24,29 @@ public class IndyIntegrationTestWithPoolAndSingleWallet extends IndyIntegrationT
 		String poolName = PoolUtils.createPoolLedgerConfig();
 		pool = Pool.openPoolLedger(poolName, null).get();
 
-		Wallet.createWallet(poolName, WALLET, TYPE, null, null).get();
-		this.wallet = Wallet.openWallet(WALLET, null, null).get();
+		Wallet.createWallet(WALLET_CONFIG, WALLET_CREDENTIALS).get();
+		this.wallet = Wallet.openWallet(WALLET_CONFIG, WALLET_CREDENTIALS).get();
 	}
 
 	@After
 	public void deletePoolAndWallet() throws Exception {
-		if (pool != null) {
-			pool.closePoolLedger().get();
-		}
-		if (wallet != null) {
-			wallet.closeWallet().get();
-			Wallet.deleteWallet(WALLET, null).get();
-		}
+		pool.closePoolLedger().get();
+		wallet.closeWallet().get();
+		Wallet.deleteWallet(WALLET_CONFIG, WALLET_CREDENTIALS).get();
 	}
 
-	protected void checkResponseType(String response, String expectedType) throws JSONException {
+	protected void checkResponseType(String response, String expectedType) {
 		assertTrue(compareResponseType(response, expectedType));
 	}
 
-	protected boolean compareResponseType(String response, String expectedType) throws JSONException {
-		JSONObject res = new JSONObject(response);
-		return expectedType.equals(res.getString("op"));
+	protected boolean compareResponseType(String response, String expectedType) {
+		try {
+			JSONObject res = new JSONObject(response);
+			return expectedType.equals(res.getString("op"));
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 
 	protected String createStoreAndPublishDidFromTrustee() throws Exception {

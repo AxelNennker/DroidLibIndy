@@ -15,19 +15,14 @@ import org.junit.*;
 public class IssuerRevokeCredentialTest extends AnoncredsIntegrationTest {
 
 	/* FIXME: getIndyHomePath hard coded forward slash "/". It will not work for Windows. */
-	private String tailsWriterConfig;
-
-	@Before
-	public void setUp() throws Exception {
-		tailsWriterConfig = new JSONObject(String.format("{\"base_dir\":\"%s\", \"uri_pattern\":\"\"}", getIndyHomePath("tails")).replace('\\', '/')).toString();
-	}
+	private String tailsWriterConfig = new JSONObject(String.format("{\"base_dir\":\"%s\", \"uri_pattern\":\"\"}", getIndyHomePath("tails")).replace('\\', '/')).toString();
 
 	@Test
 	public void testIssuerRevokeProofWorks() throws Exception {
 		// Create wallet, get wallet handle
-		String walletName = "revocationWallet";
-		Wallet.createWallet("default", walletName, "default", null, null).get();
-		Wallet wallet = Wallet.openWallet(walletName, null, null).get();
+		String walletConfig = new JSONObject().put("id", "revocationWallet").toString();
+		Wallet.createWallet(walletConfig, CREDENTIALS).get();
+		Wallet wallet = Wallet.openWallet(walletConfig, CREDENTIALS).get();
 
 		// Issuer create Schema
 		AnoncredsResults.IssuerCreateSchemaResult createSchemaResult = Anoncreds.issuerCreateSchema(issuerDid, gvtSchemaName, schemaVersion, gvtSchemaAttributes).get();
@@ -113,6 +108,6 @@ public class IssuerRevokeCredentialTest extends AnoncredsIntegrationTest {
 
 		// Close and Delete Wallet
 		wallet.closeWallet().get();
-		Wallet.deleteWallet(walletName, null).get();
+		Wallet.deleteWallet(walletConfig, CREDENTIALS).get();
 	}
 }

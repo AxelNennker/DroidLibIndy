@@ -5,7 +5,7 @@ import org.apache.commons.io.FileUtils;
 public class EnvironmentUtils {
     public static String getTestPoolIP() {
         String testPoolIp = System.getenv("TEST_POOL_IP");
-        return testPoolIp != null ? testPoolIp : "192.168.178.71";
+        return testPoolIp != null ? testPoolIp : "127.0.0.1";
     }
 
     public static String getIndyHomePath() {

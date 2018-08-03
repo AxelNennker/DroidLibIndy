@@ -1,6 +1,7 @@
 package org.hyperledger.indy.sdk.ledger;
 
 import org.hyperledger.indy.sdk.utils.PoolUtils;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
 
@@ -26,14 +27,19 @@ public class RevocGetRegDeltaRequestTest extends LedgerIntegrationTest {
 
 	@Test
 	public void testRevocRegRequestsDeltaWorks() throws Exception {
-		String myDid = createStoreAndPublishDidFromTrustee();
+		postEntities();
 
 		int to = (int) (new Date().getTime()/1000) + 100;
 
-		String getRevRegRequest = Ledger.buildGetRevocRegDeltaRequest(myDid, revRegDefId, -1, to).get();
+		String getRevRegRequest = Ledger.buildGetRevocRegDeltaRequest(DID, revRegDefId, -1, to).get();
 		String getRevReResponse = PoolUtils.ensurePreviousRequestApplied(pool, getRevRegRequest, response -> {
-			JSONObject responseObject = new JSONObject(response);
-			return !responseObject.getJSONObject("result").isNull("seqNo");
+			try {
+				JSONObject responseObject = new JSONObject(response);
+				return !responseObject.getJSONObject("result").isNull("seqNo");
+			} catch (JSONException e) {
+				e.printStackTrace();
+				return false;
+			}
 		});
 
 		Ledger.parseGetRevocRegDeltaResponse(getRevReResponse).get();

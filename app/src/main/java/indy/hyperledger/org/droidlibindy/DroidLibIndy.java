@@ -5,11 +5,23 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.system.ErrnoException;
+import android.system.Os;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.sun.jna.Library;
+
+import org.hyperledger.indy.sdk.IndyException;
+import org.hyperledger.indy.sdk.LibIndy;
+import org.hyperledger.indy.sdk.pool.Pool;
+import org.hyperledger.indy.sdk.wallet.Wallet;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
+import java.util.concurrent.ExecutionException;
 
 public class DroidLibIndy extends AppCompatActivity {
 
@@ -20,8 +32,14 @@ public class DroidLibIndy extends AppCompatActivity {
         File dataDir = getApplicationContext().getDataDir();
         System.out.println("datadir=" + dataDir.getAbsolutePath());
         File externalFilesDir = getExternalFilesDir(null);
-        System.out.println("externalFilesDir=" + externalFilesDir.getAbsolutePath());
+        String path = externalFilesDir.getAbsolutePath();
+        System.out.println("axel externalFilesDir=" + path);
 
+        try {
+            Os.setenv("EXTERNAL_STORAGE", path, true);
+        } catch (ErrnoException e) {
+            e.printStackTrace();
+        }
 
         File[] files = externalFilesDir.listFiles();
         for (int i = 0; i < files.length; ++i) {
@@ -41,7 +59,7 @@ public class DroidLibIndy extends AppCompatActivity {
             }
         }
 
-        System.loadLibrary( "indy");
+        LibIndy.init();
 
         setContentView(R.layout.activity_droid_lib_indy);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -53,6 +71,53 @@ public class DroidLibIndy extends AppCompatActivity {
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
+                Wallet wallet = null;
+
+                try {
+                    final String WALLET = "Wallet1";
+                    final String TYPE = "default";
+                    final String WALLET_CREDENTIALS =
+                            new JSONObject()
+                                    .put("key", "key")
+                                    .toString();
+                    final String WALLET_CONFIG =
+                            new JSONObject()
+                                    .put("id", WALLET)
+                                    .put("storage_type", TYPE)
+                                    .toString();
+                    try {
+                        Wallet.createWallet(WALLET_CONFIG, WALLET_CREDENTIALS).get();
+                    } catch (ExecutionException e) {
+                        System.out.println( e.getMessage() );
+                        if (e.getMessage().indexOf("WalletExistsException") >= 0) {
+                            // ignore
+                        } else {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                    wallet = Wallet.openWallet(WALLET_CONFIG, WALLET_CREDENTIALS).get();
+                    System.out.println("===================> wallet:" + wallet);
+                    Snackbar.make(view, "===================> wallet:" + wallet, Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+
+                } catch (IndyException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } finally {
+                    if (wallet != null) {
+                        try {
+                            wallet.closeWallet().get();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
             }
         });
     }
