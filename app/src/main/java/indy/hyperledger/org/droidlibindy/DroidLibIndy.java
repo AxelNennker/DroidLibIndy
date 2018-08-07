@@ -15,6 +15,8 @@ import com.sun.jna.Library;
 
 import org.hyperledger.indy.sdk.IndyException;
 import org.hyperledger.indy.sdk.LibIndy;
+import org.hyperledger.indy.sdk.did.Did;
+import org.hyperledger.indy.sdk.did.DidResults;
 import org.hyperledger.indy.sdk.pool.Pool;
 import org.hyperledger.indy.sdk.wallet.Wallet;
 import org.json.JSONException;
@@ -97,9 +99,16 @@ public class DroidLibIndy extends AppCompatActivity {
                     }
                     wallet = Wallet.openWallet(WALLET_CONFIG, WALLET_CREDENTIALS).get();
                     System.out.println("===================> wallet:" + wallet);
-                    Snackbar.make(view, "===================> wallet:" + wallet, Snackbar.LENGTH_LONG)
+
+                    DidResults.CreateAndStoreMyDidResult myDidResult = Did.createAndStoreMyDid(wallet, "{}").get();
+                    String myDid = myDidResult.getDid();
+                    Snackbar.make(view, "My DID:" + myDid, Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
 
+                    String key = Did.keyForLocalDid(wallet, myDid).get();
+                    Snackbar.make(view, "keyForLocalDid:" + key, Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                    System.out.println("keyForLocalDid:" + key);
                 } catch (IndyException e) {
                     e.printStackTrace();
                 } catch (JSONException e) {
